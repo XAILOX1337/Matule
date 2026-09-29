@@ -1,6 +1,55 @@
 package ru.matule.app.di
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import ru.matule.app.data.analytics.LogcatAnalyticsTracker
+import ru.matule.app.data.local.HomeCacheDataSource
+import ru.matule.app.data.local.ProjectImageStorage
+import ru.matule.app.data.reminder.ReminderNotifications
+import ru.matule.app.data.reminder.WorkManagerReminderScheduler
+import ru.matule.app.data.remote.CartRemoteDataSource
+import ru.matule.app.data.remote.CatalogRemoteDataSource
+import ru.matule.app.data.remote.OrderRemoteDataSource
+import ru.matule.app.data.remote.ProjectRemoteDataSource
+import ru.matule.app.data.remote.network.NetworkCartRemoteDataSource
+import ru.matule.app.data.remote.network.NetworkCatalogRemoteDataSource
+import ru.matule.app.data.remote.network.NetworkOrderRemoteDataSource
+import ru.matule.app.data.remote.network.NetworkProjectRemoteDataSource
+import ru.matule.app.data.repository.CartRepositoryImpl
+import ru.matule.app.data.repository.CatalogRepositoryImpl
+import ru.matule.app.data.repository.OrderRepositoryImpl
+import ru.matule.app.data.repository.ProjectImageRepositoryImpl
+import ru.matule.app.data.repository.ProjectRepositoryImpl
+import ru.matule.app.domain.repository.AnalyticsTracker
+import ru.matule.app.domain.repository.CartRepository
+import ru.matule.app.domain.repository.CatalogRepository
+import ru.matule.app.domain.repository.OrderRepository
+import ru.matule.app.domain.repository.ProjectImageRepository
+import ru.matule.app.domain.repository.ProjectRepository
+import ru.matule.app.domain.repository.ReminderScheduler
+import ru.matule.app.domain.usecase.AddToCartUseCase
+import ru.matule.app.domain.usecase.ChangeCartCountUseCase
+import ru.matule.app.domain.usecase.ClearCartUseCase
+import ru.matule.app.domain.usecase.CreateProjectUseCase
+import ru.matule.app.domain.usecase.DeleteCartItemUseCase
+import ru.matule.app.domain.usecase.GetCachedHomeUseCase
+import ru.matule.app.domain.usecase.GetCatalogFilterUseCase
+import ru.matule.app.domain.usecase.GetCatalogUseCase
+import ru.matule.app.domain.usecase.GetCategoriesUseCase
+import ru.matule.app.domain.usecase.GetProductUseCase
+import ru.matule.app.domain.usecase.GetProjectDraftUseCase
+import ru.matule.app.domain.usecase.GetProjectUseCase
+import ru.matule.app.domain.usecase.ImportProjectImageUseCase
+import ru.matule.app.domain.usecase.LoadHomeUseCase
+import ru.matule.app.domain.usecase.ObserveCartUseCase
+import ru.matule.app.domain.usecase.ObserveProjectsUseCase
+import ru.matule.app.domain.usecase.PlaceOrderUseCase
+import ru.matule.app.domain.usecase.RefreshCartUseCase
+import ru.matule.app.domain.usecase.RefreshProjectsUseCase
+import ru.matule.app.domain.usecase.RemoveFromCartUseCase
+import ru.matule.app.domain.usecase.SaveCatalogFilterUseCase
+import ru.matule.app.domain.usecase.SaveProjectDraftUseCase
+import ru.matule.app.presentation.main.common.CartController
 import ru.matule.app.BuildConfig
 import ru.matule.app.data.local.AppStateLocalDataSource
 import ru.matule.app.data.local.PinLocalDataSource
@@ -71,6 +120,26 @@ class AppContainer(context: Context) {
     }
     private val authRemote: AuthRemoteDataSource by lazy { NetworkAuthRemoteDataSource(api) }
     private val profileRemote: ProfileRemoteDataSource by lazy { NetworkProfileRemoteDataSource(api) }
+    private val catalogRemote: CatalogRemoteDataSource by lazy { NetworkCatalogRemoteDataSource(api) }
+    private val cartRemote: CartRemoteDataSource by lazy { NetworkCartRemoteDataSource(api) }
+    private val orderRemote: OrderRemoteDataSource by lazy { NetworkOrderRemoteDataSource(api) }
+    private val projectRemote: ProjectRemoteDataSource by lazy { NetworkProjectRemoteDataSource(api) }
+
+    // ---------- data: системные сервисы ----------
+    private val homeCache by lazy { HomeCacheDataSource(appContext) }
+    private val projectImageStorage by lazy { ProjectImageStorage(appContext) }
+    private val cartRepositoryImpl by lazy { CartRepositoryImpl(cartRemote, sessionLocal) }
+    private val projectRepositoryImpl by lazy { ProjectRepositoryImpl(projectRemote, sessionLocal) }
+    private val reminderSchedulerImpl by lazy { WorkManagerReminderScheduler(appContext) }
+
+    /** Показ локальных уведомлений. */
+    val reminderNotifications: ReminderNotifications by lazy { ReminderNotifications(appContext) }
+
+    /** Напоминания (WorkManager). */
+    val reminderScheduler: ReminderScheduler get() = reminderSchedulerImpl
+
+    /** Аналитика. В спринте 5 здесь подключается AppMetrica. */
+    val analytics: AnalyticsTracker by lazy { LogcatAnalyticsTracker() }
 
     // ---------- domain: репозитории ----------
     val authRepository: AuthRepository by lazy {
@@ -78,12 +147,25 @@ class AppContainer(context: Context) {
             remote = authRemote,
             session = sessionLocal,
             profileLocal = profileLocal,
-            cleaners = listOf(sessionLocal, pinLocal, profileLocal, appStateLocal),
+            cleaners = listOf(
+                sessionLocal,
+                pinLocal,
+                profileLocal,
+                appStateLocal,
+                cartRepositoryImpl,
+                projectRepositoryImpl,
+                reminderSchedulerImpl,
+            ),
         )
     }
     val pinRepository: PinRepository by lazy { PinRepositoryImpl(pinLocal) }
     val profileRepository: ProfileRepository by lazy { ProfileRepositoryImpl(profileRemote, sessionLocal, profileLocal) }
     val appStateRepository: AppStateRepository by lazy { AppStateRepositoryImpl(appStateLocal) }
+    val catalogRepository: CatalogRepository by lazy { CatalogRepositoryImpl(catalogRemote, homeCache) }
+    val cartRepository: CartRepository get() = cartRepositoryImpl
+    val orderRepository: OrderRepository by lazy { OrderRepositoryImpl(orderRemote, sessionLocal) }
+    val projectRepository: ProjectRepository get() = projectRepositoryImpl
+    val projectImageRepository: ProjectImageRepository by lazy { ProjectImageRepositoryImpl(projectImageStorage) }
 
     // ---------- presentation ----------
     /** Общие уведомления (SnackBar). */
@@ -112,4 +194,38 @@ class AppContainer(context: Context) {
     val saveProfileDraft get() = SaveProfileDraftUseCase(appStateRepository)
     val getLoginEmail get() = GetLoginEmailUseCase(appStateRepository)
     val saveLoginEmail get() = SaveLoginEmailUseCase(appStateRepository)
+
+    // ---------- use case'ы: каталог, корзина, заказ ----------
+    val getCachedHome get() = GetCachedHomeUseCase(catalogRepository)
+    val loadHome get() = LoadHomeUseCase(catalogRepository)
+    val getCategories get() = GetCategoriesUseCase(catalogRepository)
+    val getCatalog get() = GetCatalogUseCase(catalogRepository)
+    val getProduct get() = GetProductUseCase(catalogRepository)
+    val getCatalogFilter get() = GetCatalogFilterUseCase(appStateRepository)
+    val saveCatalogFilter get() = SaveCatalogFilterUseCase(appStateRepository)
+    val observeCart get() = ObserveCartUseCase(cartRepository)
+    val refreshCart get() = RefreshCartUseCase(cartRepository)
+    val addToCart get() = AddToCartUseCase(cartRepository)
+    val removeFromCart get() = RemoveFromCartUseCase(cartRepository)
+    val changeCartCount get() = ChangeCartCountUseCase(cartRepository)
+    val deleteCartItem get() = DeleteCartItemUseCase(cartRepository)
+    val clearCart get() = ClearCartUseCase(cartRepository)
+    val placeOrder get() = PlaceOrderUseCase(cartRepository, orderRepository)
+
+    // ---------- use case'ы: проекты ----------
+    val observeProjects get() = ObserveProjectsUseCase(projectRepository)
+    val refreshProjects get() = RefreshProjectsUseCase(projectRepository)
+    val getProject get() = GetProjectUseCase(projectRepository)
+    val getProjectDraft get() = GetProjectDraftUseCase(appStateRepository)
+    val saveProjectDraft get() = SaveProjectDraftUseCase(appStateRepository)
+    val importProjectImage get() = ImportProjectImageUseCase(projectImageRepository)
+    val createProject get() = CreateProjectUseCase(projectRepository, projectImageRepository, appStateRepository)
+
+    /**
+     * Кнопки корзины для экрана со списком описаний.
+     *
+     * @param scope область корутин ViewModel экрана.
+     */
+    fun cartController(scope: CoroutineScope): CartController =
+        CartController(observeCart, refreshCart, addToCart, removeFromCart, notifier, scope)
 }

@@ -3,4 +3,6 @@
     <color name="white">#FFFFFFFF</color>
     <!-- Фон системной заставки Android 12+: центр градиента нашей заставки. -->
     <color name="splash_background">#FF2555F3</color>
+    <!-- Цвет значка уведомлений (Accent). -->
+    <color name="notification_accent">#FF1A6FEE</color>
 </resources>

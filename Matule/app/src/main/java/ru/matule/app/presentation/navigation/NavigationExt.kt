@@ -22,10 +22,16 @@ fun NavController.openStack(routes: List<String>) {
 
 /**
  * Переключение вкладки нижнего меню: у каждой вкладки своя история, «назад» ведёт на Главную.
+ * Нажатие на вкладку, внутри которой пользователь уже находится, возвращает к её началу.
  *
  * @param route маршрут вкладки.
  */
 fun NavController.navigateToTab(route: String) {
+    val alreadyInStack = runCatching { getBackStackEntry(route) }.isSuccess
+    if (alreadyInStack) {
+        popBackStack(route, inclusive = false)
+        return
+    }
     navigate(route) {
         popUpTo(Routes.HOME) { saveState = true }
         launchSingleTop = true

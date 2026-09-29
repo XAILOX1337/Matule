@@ -220,6 +220,21 @@ class MatuleApiTest {
     }
 
     @Test
+    fun getProject_parsesSnakeCaseDates() = runBlocking {
+        enqueue(
+            200,
+            """{"id":"pr1","title":"Мой первый проект","start_date":"01.10.2026","end_date":"15.10.2026","image":"photo.jpg","created":"2026-09-29 10:00:00.000Z"}""",
+        )
+
+        val result = api.projects.getProject("pr1")
+
+        val project = (result as NetworkResult.Success).data
+        assertEquals("01.10.2026", project.startDate)
+        assertEquals("15.10.2026", project.endDate)
+        assertEquals("/api/collections/projects/records/pr1", server.takeRequest().path)
+    }
+
+    @Test
     fun fileUrl_buildsPocketBasePath() {
         assertEquals(
             "${server.url("/")}api/files/projects/pr1/photo.jpg",

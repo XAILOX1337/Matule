@@ -191,6 +191,14 @@ interface ProjectService {
     suspend fun getProjects(userId: String): NetworkResult<List<ProjectDto>>
 
     /**
+     * Один проект.
+     *
+     * @param projectId идентификатор проекта.
+     * @return проект.
+     */
+    suspend fun getProject(projectId: String): NetworkResult<ProjectDto>
+
+    /**
      * Создание проекта.
      *
      * @param request данные проекта.

@@ -198,6 +198,10 @@ internal interface ProjectsApi {
         @Query("sort") sort: String = "-created",
     ): PageDto<ProjectDto>
 
+    /** Один проект. @param id идентификатор. */
+    @GET("api/collections/projects/records/{id}")
+    suspend fun get(@Path("id") id: String): ProjectDto
+
     /** Создание проекта формой multipart. @param fields текстовые поля. @param image файл фото или `null`. */
     @Multipart
     @POST("api/collections/projects/records")

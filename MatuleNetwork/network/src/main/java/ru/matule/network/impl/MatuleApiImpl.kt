@@ -196,6 +196,9 @@ internal class ProjectServiceImpl(
     override suspend fun getProjects(userId: String): NetworkResult<List<ProjectDto>> =
         caller.call { api.list(filter = PbFilter.eq("user", userId)).items }
 
+    override suspend fun getProject(projectId: String): NetworkResult<ProjectDto> =
+        caller.call { api.get(projectId) }
+
     override suspend fun createProject(request: CreateProjectRequestDto, image: ImageUpload?): NetworkResult<ProjectDto> {
         val textType = "text/plain".toMediaType()
         val fields: Map<String, RequestBody> = mapOf(
