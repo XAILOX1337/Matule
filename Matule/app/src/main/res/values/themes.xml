@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MatuleClothes" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        Системная заставка Android 12+ показывается сплошным синим без иконки,
+        а сразу за ней — заставка приложения с градиентом. Так нет «двойной» заставки с иконкой.
+    -->
+    <style name="Theme.Matule" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_empty</item>
+    </style>
 </resources>

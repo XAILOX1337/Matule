@@ -35,6 +35,7 @@ Swagger в тренировке не выдаётся, поэтому серве
 | Запрос из задания | Метод и путь |
 |---|---|
 | Авторизация | `POST /api/collections/users/auth-with-password` |
+| Проверка почты при регистрации | `POST /api/matule/check-email` (хук `pb_hooks/matule.pb.js`) |
 | Создание пользователя | `POST /api/collections/users/records` |
 | Получение информации о профиле | `GET /api/collections/users/records/{id}` |
 | Изменение профиля | `PATCH /api/collections/users/records/{id}` |

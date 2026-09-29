@@ -54,6 +54,22 @@ internal data class PageDto<T>(
 internal data class AuthWithPasswordBody(val identity: String, val password: String)
 
 /**
+ * Тело запроса проверки почты.
+ *
+ * @property email почта.
+ */
+@Serializable
+internal data class CheckEmailBody(val email: String)
+
+/**
+ * Ответ проверки почты.
+ *
+ * @property available свободна ли почта.
+ */
+@Serializable
+internal data class CheckEmailResponse(val available: Boolean = false)
+
+/**
  * Тело запроса добавления в корзину.
  *
  * @property user идентификатор пользователя.
@@ -80,6 +96,10 @@ internal interface AuthApi {
     /** Обновление токена (нужен заголовок Authorization). */
     @POST("api/collections/users/auth-refresh")
     suspend fun authRefresh(): AuthResponseDto
+
+    /** Проверка, свободна ли почта (хук `pb_hooks/matule.pb.js`). @param body почта. */
+    @POST("api/matule/check-email")
+    suspend fun checkEmail(@Body body: CheckEmailBody): CheckEmailResponse
 
     /** Выход: инвалидирует токены пользователя (хук `pb_hooks/matule.pb.js`). */
     @POST("api/matule/logout")

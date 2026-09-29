@@ -2,22 +2,25 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
+// Адрес PocketBase: можно переопределить в gradle.properties (MATULE_API_URL).
+val apiBaseUrl: String = (project.findProperty("MATULE_API_URL") as String?) ?: "http://10.0.2.2:8090/"
+
 android {
-    namespace = "com.example.matuleclothes"
-    compileSdk {
-        version = release(36)
-    }
+    namespace = "ru.matule.app"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.matuleclothes"
+        applicationId = "ru.matule.app"
         minSdk = 33
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -38,27 +41,37 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
-
-    //uikit (still used for the splash screen's font)
-    implementation("com.github.AlexeyNerobeev:uikit:1.0.2")
+    // Собственные библиотеки (отдельные проекты ../MatuleUIKit и ../MatuleNetwork)
+    implementation("ru.matule:uikit:1.0.0")
+    implementation("ru.matule:network:1.0.0")
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.process)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.biometric)
+    implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

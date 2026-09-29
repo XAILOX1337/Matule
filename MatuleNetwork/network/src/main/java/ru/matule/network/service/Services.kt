@@ -29,6 +29,14 @@ interface AuthService {
     suspend fun signIn(email: String, password: String): NetworkResult<AuthResponseDto>
 
     /**
+     * Проверка, свободна ли почта для регистрации (хук `pb_hooks/matule.pb.js`).
+     *
+     * @param email почта.
+     * @return `true`, если пользователя с такой почтой ещё нет.
+     */
+    suspend fun isEmailAvailable(email: String): NetworkResult<Boolean>
+
+    /**
      * Создание пользователя (регистрация).
      *
      * @param request данные нового пользователя.

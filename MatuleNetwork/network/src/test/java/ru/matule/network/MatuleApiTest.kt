@@ -93,6 +93,18 @@ class MatuleApiTest {
     }
 
     @Test
+    fun isEmailAvailable_sendsEmailAndParsesAnswer() = runBlocking {
+        enqueue(200, """{"available":false}""")
+
+        val result = api.auth.isEmailAvailable("demo@matule.ru")
+
+        assertEquals(false, (result as NetworkResult.Success).data)
+        val request = server.takeRequest()
+        assertEquals("/api/matule/check-email", request.path)
+        assertTrue(request.body.readUtf8().contains("\"email\":\"demo@matule.ru\""))
+    }
+
+    @Test
     fun authorizedRequest_sendsTokenHeader() = runBlocking {
         token = "secret-token"
         enqueue(200, """{"id":"u1","email":"demo@matule.ru"}""")

@@ -13,6 +13,7 @@ import ru.matule.network.impl.api.CartApi
 import ru.matule.network.impl.api.CartCreateBody
 import ru.matule.network.impl.api.CartUpdateBody
 import ru.matule.network.impl.api.CatalogApi
+import ru.matule.network.impl.api.CheckEmailBody
 import ru.matule.network.impl.api.OrdersApi
 import ru.matule.network.impl.api.ProjectsApi
 import ru.matule.network.impl.api.UsersApi
@@ -83,6 +84,9 @@ internal class AuthServiceImpl(
 ) : AuthService {
     override suspend fun signIn(email: String, password: String): NetworkResult<AuthResponseDto> =
         caller.call { api.authWithPassword(AuthWithPasswordBody(identity = email, password = password)) }
+
+    override suspend fun isEmailAvailable(email: String): NetworkResult<Boolean> =
+        caller.call { api.checkEmail(CheckEmailBody(email = email)).available }
 
     override suspend fun signUp(request: SignUpRequestDto): NetworkResult<UserDto> =
         caller.call { usersApi.create(request) }

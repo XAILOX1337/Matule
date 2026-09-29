@@ -52,6 +52,7 @@ data class UserDto(
  * @property surname фамилия.
  * @property birthday дата рождения в формате дд.мм.гггг.
  * @property gender пол.
+ * @property notifications включены ли уведомления (по умолчанию включены).
  * @property emailVisibility видна ли почта в ответах сервера.
  */
 @Serializable
@@ -64,6 +65,7 @@ data class SignUpRequestDto(
     val surname: String,
     val birthday: String,
     val gender: String,
+    val notifications: Boolean = true,
     val emailVisibility: Boolean = true,
 )
 
