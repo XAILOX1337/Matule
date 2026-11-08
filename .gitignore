@@ -19,6 +19,7 @@ keystore.properties
 backend/pocketbase
 backend/pocketbase.exe
 backend/pb_data/
+backend/pocketbase.log
 backend/*.zip
 backend/CHANGELOG.md
 backend/LICENSE.md
