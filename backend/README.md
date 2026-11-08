@@ -7,6 +7,15 @@ Swagger в тренировке не выдаётся, поэтому серве
 1. Скачай последнюю версию PocketBase для Linux (нужна **v0.23 или новее**):
    <https://github.com/pocketbase/pocketbase/releases> → файл `pocketbase_X.Y.Z_linux_amd64.zip`.
 2. Распакуй бинарник `pocketbase` прямо в эту папку (`backend/`), рядом с `pb_migrations/` и `pb_hooks/`.
+
+   **Если GitHub недоступен** — собери бинарник из исходников через Go-прокси (исходники проверяются
+   по суммам sum.golang.org, Go 1.23+ скачивается с dl.google.com):
+
+   ```bash
+   export PATH=$HOME/sdk/go/bin:$PATH GOPROXY=https://proxy.golang.org
+   go install github.com/pocketbase/pocketbase/examples/base@latest
+   cp ~/go/bin/base backend/pocketbase
+   ```
 3. Создай администратора и запусти сервер:
 
    ```bash
