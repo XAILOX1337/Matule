@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -11,6 +13,15 @@ val apiBaseUrl: String = (project.findProperty("MATULE_API_URL") as String?) ?: 
 // Ключ AppMetrica: задаётся в gradle.properties (MATULE_APPMETRICA_KEY).
 // Пустой ключ — аналитика работает через Logcat, SDK не активируется.
 val appMetricaKey: String = (project.findProperty("MATULE_APPMETRICA_KEY") as String?) ?: ""
+
+// Подпись релиза: параметры лежат в Matule/keystore.properties (файл не в репозитории,
+// шаблон — в docs/rustore.md). Пока файла нет, релиз подписывается debug-ключом,
+// чтобы сборка не падала; для публикации keystore нужен настоящий.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val hasReleaseKeystore = keystorePropsFile.exists()
+val keystoreProps = Properties().apply {
+    if (hasReleaseKeystore) keystorePropsFile.inputStream().use { load(it) }
+}
 
 android {
     namespace = "ru.matule.app"
@@ -28,6 +39,17 @@ android {
         buildConfigField("String", "APPMETRICA_API_KEY", "\"$appMetricaKey\"")
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -35,6 +57,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
     compileOptions {

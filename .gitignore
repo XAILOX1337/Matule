@@ -12,6 +12,7 @@ captures/
 *.aab
 *.jks
 *.keystore
+keystore.properties
 .DS_Store
 
 # PocketBase: бинарник и база у каждого свои
