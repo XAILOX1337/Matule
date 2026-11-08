@@ -23,5 +23,5 @@ MatuleClothes-main/
 
 ## Ветки
 
-Каждый спринт — отдельная ветка, созданная от предыдущей: `Sprint_1` → `Sprint_2` → `Sprint_3` → `Sprint_4`.
+Каждый спринт — отдельная ветка, созданная от предыдущей: `Sprint_1` → `Sprint_2` → `Sprint_3` → `Sprint_4` → `Sprint_5`.
 После push создай Pull Request каждой ветки в `main` по порядку.

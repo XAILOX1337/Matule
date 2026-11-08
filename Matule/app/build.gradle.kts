@@ -8,6 +8,10 @@ plugins {
 // Адрес PocketBase: можно переопределить в gradle.properties (MATULE_API_URL).
 val apiBaseUrl: String = (project.findProperty("MATULE_API_URL") as String?) ?: "http://10.0.2.2:8090/"
 
+// Ключ AppMetrica: задаётся в gradle.properties (MATULE_APPMETRICA_KEY).
+// Пустой ключ — аналитика работает через Logcat, SDK не активируется.
+val appMetricaKey: String = (project.findProperty("MATULE_APPMETRICA_KEY") as String?) ?: ""
+
 android {
     namespace = "ru.matule.app"
     compileSdk = 36
@@ -21,6 +25,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "APPMETRICA_API_KEY", "\"$appMetricaKey\"")
     }
 
     buildTypes {
@@ -69,6 +74,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.yandex.appmetrica)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -2,6 +2,7 @@ package ru.matule.app.di
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
+import ru.matule.app.data.analytics.AppMetricaAnalyticsTracker
 import ru.matule.app.data.analytics.LogcatAnalyticsTracker
 import ru.matule.app.data.local.HomeCacheDataSource
 import ru.matule.app.data.local.ProjectImageStorage
@@ -138,8 +139,13 @@ class AppContainer(context: Context) {
     /** Напоминания (WorkManager). */
     val reminderScheduler: ReminderScheduler get() = reminderSchedulerImpl
 
-    /** Аналитика. В спринте 5 здесь подключается AppMetrica. */
-    val analytics: AnalyticsTracker by lazy { LogcatAnalyticsTracker() }
+    /**
+     * Аналитика: AppMetrica, если в `gradle.properties` задан `MATULE_APPMETRICA_KEY`
+     * (SDK активируется в [ru.matule.app.MatuleApp]), иначе события пишутся в Logcat.
+     */
+    val analytics: AnalyticsTracker by lazy {
+        if (BuildConfig.APPMETRICA_API_KEY.isNotBlank()) AppMetricaAnalyticsTracker() else LogcatAnalyticsTracker()
+    }
 
     // ---------- domain: репозитории ----------
     val authRepository: AuthRepository by lazy {
